@@ -5,7 +5,7 @@
 ```
 
 let mg = new mgue({
-	el: '#upload',
+	el: '#upload',  // input标签的id
 	data: {
 		url: 'http://192.168.0.95:3000/web/getSwipe',  // 上传的地址
 		size: 2048,  // 超过2048kb则会压缩，默认值是2048，可手动定义
