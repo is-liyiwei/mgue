@@ -2,6 +2,24 @@
 
 主要逻辑大概如下，主要目的在于数据和ui层的分离，两者互不影响
 
+
+use browser
+
+```
+
+<script type="text/javascript" src="mgue.js"></script>
+
+```
+
+use es6 module
+
+```
+npm i mgue
+
+import mgue from 'mgue'
+
+```
+
 ```
 
 let mg = new mgue({
