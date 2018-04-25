@@ -56,11 +56,17 @@
 <script>
 
 let mg = new mgue({
-	el: '#upload',
+	el: '#upload', // 仅支持id选择器
 	data: {
-		url: 'http://192.168.0.95:3000/web/getSwipe',  // 上传的地址
+		url: 'http://192.168.0.106:3000/web/getSwipe',  // 上传的地址
 		size: 2048,  // 超过2048kb则会压缩，默认值是2048，可手动定义
 		coefficient: 0.8, // 压缩系数，默认是0.8，可选范围是0-1的数字类型的值，可手动定义
+		params: {  // 额外参数
+			name: 'liyiwei'
+		},
+		headers: { // 请求头部参数
+			heData: 'heData'
+		}
 	},
 	create () {
 		console.log('create');  // 创建实例的钩子

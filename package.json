@@ -1,6 +1,6 @@
 {
   "name": "mgue",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "description": "A img upload lib",
   "main": "index.js",
   "author": "liyiwei",
@@ -14,16 +14,11 @@
   "keywords": [
     "image",
     "img upload",
-    "upload"
+    "upload",
+    "图片上传插件"
   ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "dependencies": {
-
-  },
-  "devDependencies": {
-
   },
   "engines": {
     "node": ">= 6.0.0",
