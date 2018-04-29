@@ -1,7 +1,8 @@
 /*!
- * mgue.js v0.0.1
+ * mgue.js v0.1.1
  * (c) 2018-2018 is-liyiwei
  * Released under the MIT License.
+ * https://github.com/is-liyiwei/mgue
  */
 (function (global, factory) {
   typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory() :
@@ -12,6 +13,8 @@
   const LIFECYCLE_HOOKS = [
     "create",
     "chooseImg",
+    "drawStart",
+    "drawEnd",
     "uploadStart",
     "done",
     "fail"
@@ -32,16 +35,21 @@
   const checkTypeForImage = /\.*(gif|jpg|jpeg|bmp|png)$/i
 
   // mime其实可以校验格式，但是这里暂时不太了解，先放着，下面写死一个默认的image/jpeg格式
-  // const mimes = {
-  //   "jpg": "image/jpeg",
-  //   "png": "image/png",
-  //   "gif": "image/gif",
-  //   "svg": "image/svg+xml",
-  //   "psd": "image/photoshop"
-  // }
+  const mimes = {
+    "jpg": "image/jpeg",
+    "jpeg": "image/jpeg",
+    "png": "image/png",
+    "gif": "image/gif"
+    // "svg": "image/svg+xml"
+    // "psd": "image/photoshop"
+  }
 
-  const checkType = function (obj) {
+  const checkType = (obj) => {
     return class2type[toString.call(obj)]
+  }
+
+  const getMime = (b64) => {
+    return b64.split(',')[0].split(':')[1].split(';')[0]
   }
 
   /**
@@ -49,64 +57,55 @@
    * @param dataURI,图片的base64格式数据
    * @returns {Blob}
    */
-  // function dataURItoBlob(dataURI) {
-  //   let byteString = atob(dataURI.split(',')[1]);
-  //   let mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
-  //   let ab = new ArrayBuffer(byteString.length);
-  //   let ia = new Uint8Array(ab);
-  //   for (let i = 0; i < byteString.length; i++) {
-  //       ia[i] = byteString.charCodeAt(i);
-  //   }
-  //   console.log(mimeString) // image/jpeg
-  //   return new Blob([ab], {type: mimeString});
-  // }
-
-  /**
-   * database64文件格式转换为2进制
-   *
-   * @param  {[String]} data dataURL 的格式为 “data:image/png;base64,****”,逗号之前都是一些说明性的文字，我们只需要逗号之后的就行了
-   * @param  {[String]} mime [description]
-   * @return {[blob]}        [description]
-   */
-  function dataURItoBlob (data, mime = "image/jpeg") {
-    data = data.split(",")[1]
-    data = window.atob(data)
-    var ia = new Uint8Array(data.length)
-    for (var i = 0; i < data.length; i++) {
-      ia[i] = data.charCodeAt(i)
+  let dataURItoBlob = (dataURI) => {
+    let byteString = atob(dataURI.split(',')[1])
+    let mimeString = getMime(dataURI)
+    let ab = new ArrayBuffer(byteString.length)
+    let ia = new Uint8Array(ab)
+    for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i)
     }
-    return new Blob([ia], {
-      type: mime
-    })
+    return new Blob([ab], {type: mimeString})
   }
 
+  let compress = (imgObj, mgue, opts) => {
+    let canvas = document.createElement("canvas"),
+        ctx = canvas.getContext("2d"),
+        scale = imgObj.width / imgObj.height,
+        width1 = imgObj.width,
+        height1 = parseInt(width1 / scale)
 
-  function compress(imgObj, coefficient) {
-    let canvas = document.createElement("canvas")
-    let ctx = canvas.getContext("2d")
-
-    //  canvas.setAttribute('width',imgObj.width);
-    //  canvas.setAttribute('height',imgObj.height);
-    //  canvas.style.width = imgObj.width;
-    //  canvas.style.height = imgObj.height;
-
-    //利用canvas进行绘图
-    let scale = imgObj.width / imgObj.height  // 比例
-    let width1 = 1920  // 现在主流的1920
-    let height1 = parseInt(width1 / scale)  // 按照上面的方法这个就是1440
     canvas.width = width1
     canvas.height = height1
-    //console.log(canvas.width );
+
     ctx.drawImage(imgObj, 0, 0, width1, height1)
 
-    //将原来图片的质量压缩到原先的coefficient倍。
-    let data = canvas.toDataURL("image/jpeg", coefficient) //data url的形式
+    mgue["drawStart"] && mgue["drawStart"].call(mgue, ctx, imgObj, canvas)
+    // 将原来图片的质量压缩到原先的coefficient倍。data url的形式
+    let data = canvas.toDataURL(opts.fileMime, opts.coefficient)
+
+    mgue["drawEnd"] && mgue["drawEnd"].call(mgue, ctx, imgObj, canvas)
 
     return data
+  }
 
+  let _canCompress = (fileMime) => {
+    // gif暂时未找到合理绘图方法，暂用此方法跳过
+
+    let flag = ["image/gif"].indexOf(fileMime) != -1
+
+    return flag
   }
 
   class mgue {
+    static use (plugin, opts) {
+      if (plugin.installed) {
+        console.info('plugin installed')
+        return
+      }
+      plugin.install(this, opts)
+      plugin.installed = true
+    }
     constructor (options) {
       this.$mgue = this
       this._options = options
@@ -114,12 +113,13 @@
     }
     init () {
       let mgue = this
+      // 超过2048kb则会压缩，默认值是2048，可手动定义
+      // 压缩系数，默认是0.8，可选范围是0-1的数字类型的值，可手动定义
       let defaultOptions = {
-        size: 2048,  // 超过2048kb则会压缩，默认值是2048，可手动定义
-        coefficient: 0.8 // 压缩系数，默认是0.8，可选范围是0-1的数字类型的值，可手动定义
+        size: 2048,
+        coefficient: 0.8
       }
-      let data = Object.assign({}, defaultOptions, this._options.data)
-      mgue.$data = data
+      mgue.$data = Object.assign({}, defaultOptions, this._options.data)
       mgue.url = mgue._options.data.url
       mgue.$ref = document.getElementById(mgue._options.el.slice(1))
       mgue.blobList = []
@@ -132,18 +132,9 @@
       for (let hook of LIFECYCLE_HOOKS) {
         if (checkType(o[hook]) === "function") {
           this[hook] = o[hook]
-        } else {
+        } else if (o[hook]) {
           throw new Error("hook must use function")
         }
-      }
-    }
-    setParams (fmData) {
-      let params = this.$data.params
-      // 添加其他参数
-      if (typeof params == "object" && params) {
-        Object.keys(params).forEach((k) => {
-          fmData.append(k, params[k])
-        })
       }
     }
     bindHandleDefault (mgue) {
@@ -159,42 +150,72 @@
         files.forEach(function (file) {
 
           if (!checkTypeForImage.test(file.type)) {
+            // 检查是否是图片类型
             console.warn("warn: Must be the image type")
             return mgue.warn = true
+          } else {
+            // 设置图片类型
+            file.fileMime = file.type.match(checkTypeForImage)["input"]
           }
 
           // 获取图片压缩前大小，打印图片压缩前大小
-          // let size = ~~(file.size / 1024) + "KB";
+          // let size = ~~(file.size / 1024) + "KB"
           let size = ~~(file.size / 1024)
 
           let reader = new FileReader()
 
           reader.readAsDataURL(file)
+          // 设置一个flag，gif暂时无法绘图
+          file.is_gif_flag = _canCompress(file.fileMime)
 
-          reader.onload = function(evt) {
+          reader.onload = (evt) => {
+            let img = new Image()
+            img.src = evt.srcElement.result
+            img.onload = () => {
+              // 当图片大小不超过这个的时候或者为gif图，跳过canvas，直接上传
+              if (size < compressSize || file.is_gif_flag) {
+                // 小于这个尺寸，但是有绘图需求进入canvas，但不能是gif图
+                if (!file.is_gif_flag && mgue["drawStart"] != undefined || mgue["drawEnd"] != undefined) {
 
-            if(size > compressSize) { // 当图片大小超过这个的时候就压缩，之前设置的是1024*1024*2的，但是图片还是太大了，导致手机上网络请求特别慢，最后导致请求超时接口无法调用
-              let img = new Image()
-              img.src = evt.srcElement.result
-              img.onload = () => {
-                let imgBase64 = compress(img, coefficient)
-                //打印压缩前后的大小，以及压缩比率
-                // console.log('压缩前：' + evt.srcElement.result.length);
-                // console.log('压缩后：' + imgBase64.length);
-                // console.log('压缩率：' + ~~(100 * (evt.srcElement.result.length - imgBase64.length) / evt.srcElement.result.length) + "%");
-                // console.log('base64数据', imgBase64);
+                  let imgBase64 = compress(img, mgue, {
+                    fileMime: file.fileMime,
+                    coefficient,
+                    size,
+                    compressSize
+                  })
+
+                  blobList.push(dataURItoBlob(imgBase64))
+
+                  if(blobList.length === files.length) {
+                    mgue["chooseImg"] && mgue["chooseImg"].call(this, mgue.blobList, e)
+                  }
+
+                } else {
+                  blobList.push(dataURItoBlob(evt.srcElement.result))
+                  //将压缩后的二进制图片数据对象(blob)组成的list通过钩子函数返回出去
+                  if(blobList.length === files.length) {
+                    mgue["chooseImg"] && mgue["chooseImg"].call(this, mgue.blobList, e)
+                  }
+                }
+
+              } else {
+                let imgBase64 = compress(img, mgue, {
+                  fileMime: file.fileMime,
+                  coefficient,
+                  size,
+                  compressSize
+                })
+                // 打印压缩前后的大小，以及压缩比率
+                // console.log('压缩前：' + evt.srcElement.result.length)
+                // console.log('压缩后：' + imgBase64.length)
+                // console.log('压缩率：' + ~~(100 * (evt.srcElement.result.length - imgBase64.length) / evt.srcElement.result.length) + "%")
+                // console.log('base64数据', imgBase64)
                 blobList.push(dataURItoBlob(imgBase64))
 
-                //将压缩后的二进制图片数据对象(blob)组成的list通过钩子函数返回出去
+                // 将压缩后的二进制图片数据对象(blob)组成的list通过钩子函数返回出去
                 if(blobList.length === files.length) {
                   mgue["chooseImg"] && mgue["chooseImg"].call(this, mgue.blobList, e)
                 }
-              }
-            } else {
-              blobList.push(dataURItoBlob(evt.srcElement.result))
-              //将压缩后的二进制图片数据对象(blob)组成的list通过钩子函数返回出去
-              if(blobList.length === files.length) {
-                mgue["chooseImg"] && mgue["chooseImg"].call(this, mgue.blobList, e)
               }
             }
           }
@@ -202,7 +223,7 @@
       }
     }
     // markHook (hook) {
-    //   this[hook].apply(this);
+    //   this[hook].apply(this)
     // }
     send () {
       let mg = this
@@ -217,16 +238,30 @@
         formUpData(mg, mg.blobList[i])
       }
 
-      function formUpData(mgue, blobFile){
+      function formUpData (mgue, blobFile) {
         let formData = new FormData()
+        let xhr = new XMLHttpRequest()
 
-        mgue.setParams.call(mgue, formData)
+        let { headers, params } = mgue.$data.headers
+        // 这里可以给mgue实例添加一个uid作为缓存，下个版本试试 
+
+        // 添加其他参数
+        if (checkType(params) === "object" && params) {
+          Object.keys(params).forEach((k) => {
+            formData.append(k, params[k])
+          })
+        }
+
+        xhr.open("POST", mg.url)
+
+        // 设置header
+        if (checkType(headers) === "object" && headers) {
+          Object.keys(headers).forEach((k) => {
+            xhr.setRequestHeader(k, headers[k])
+          })
+        }
 
         formData.append("imgFiles", blobFile)
-
-        let xhr = new XMLHttpRequest()
-        
-        xhr.open("POST", mg.url)
 
         xhr.onreadystatechange = function (e) {
           if (xhr.readyState == 4) {
@@ -236,15 +271,6 @@
               mg["fail"] && mg["fail"].call(null, this.response, e)
             }
           }
-        }
-
-        let headers = mgue.$data.headers
-
-        // 设置header
-        if (typeof headers == "object" && headers) {
-          Object.keys(headers).forEach((k) => {
-            xhr.setRequestHeader(k, headers[k])
-          })
         }
 
         xhr.send(formData)
