@@ -73,10 +73,10 @@ var gradient = ctx.createLinearGradient(0, 0, canvas.width, 0)
     })
 ```
 
-```
-插件的使用一般是对canvas进行操作，所以插件一般用在drawStart方法里面，该方法会暴露出当前的绘图对象和img本身
-ctx, img, canvas，目录下有三个常用方法的插件，用于添加文本，图形，可用于加水印标识等等，也可自己写插件，按照上面
-的方法使用即可，本意上就是对canvas进行操作，只要有足够的绘图功底，Nothing is impossible！！！
+```js
+// 插件的使用一般是对canvas进行操作，所以插件一般用在drawStart方法里面，该方法会暴露出当前的绘图对象和img本身
+// ctx, img, canvas，目录下有三个常用方法的插件，用于添加文本，图形，可用于加水印标识等等，也可自己写插件，按照上面
+// 的方法使用即可，本意上就是对canvas进行操作，只要有足够的绘图功底，Nothing is impossible！！！
 
 drawStart(ctx, img, canvas) { // 绘图开始钩子
   this.$pluginFn(ctx, {
@@ -87,11 +87,11 @@ drawStart(ctx, img, canvas) { // 绘图开始钩子
 
 > 示例，可直接下载此项目，查看demo文件夹下对应的文件
 
-[普通使用，压缩上传]()
-[压缩上传，添加文字]()
-[压缩上传，添加方形]()
-[压缩上传，添加圆形]()
-[综合示例]()
++ [普通使用，压缩上传]()
++ [压缩上传，添加文字]()
++ [压缩上传，添加方形]()
++ [压缩上传，添加圆形]()
++ [综合示例]()
 
 > 后端代码以node为示例，基于express，依赖formidable库
 
