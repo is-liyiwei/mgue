@@ -25,8 +25,12 @@ module.exports = {
         "semi": [
             "error",
             "never"
+            // "always"
         ],
         "no-console": [
+            "warn"
+        ],
+        "no-undef": [
             "warn"
         ]
     }

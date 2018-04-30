@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>uploadImg</title>
+	<meta name="viewport" content="initial-scale=1.0, maximum-scale=1, user-scalable=no">
+	<link rel="stylesheet" href="../demo.css">
+</head>
+<body>
+
+	<div id="input-box">
+		<input type="file" id="upload" capture="camera" multiple="false" />
+		<button class="btn">chooseImg</button>
+	</div>
+
+	<button id="send" class="btn">send</button>
+
+	<div id="box"></div>
+
+</body>
+<script type="text/javascript" src="../../index.js"></script>
+<script type="text/javascript" src="../../mugeFillText.js"></script>
+<script type="text/javascript" src="../../mugeFillRect.js"></script>
+<script type="text/javascript" src="../../mugeFillCircle.js"></script>
+<script>
+
+  // 注册插件
+  mgue.use(fillTextPlugin)
+  mgue.use(fillRectPlugin)
+  mgue.use(fillCirclePlugin)
+
+  let mg = new mgue({
+    el: '#upload', // 仅支持id选择器
+    data: {
+      url: 'http://192.168.1.103:3000/web/upload', // 上传的地址，为post方法
+      size: 2048, // 超过2048kb则会压缩，默认值是2048，可手动定义
+      coefficient: 0.8, // 压缩系数，默认是0.8，可选范围是0-1的数字类型的值，可手动定义
+      params: { // 额外参数
+        name: 'liyiwei123'
+      },
+      headers: { // 请求头部参数
+        heData: 'heData123'
+      }
+    },
+    chooseImg(data, $event) {
+      console.log('chooseImg') // 选择图片的钩子
+
+      let box = document.getElementById('box')
+      box.innerHTML = ''
+      for(let i = 0; i < data.length; i++) {
+        let Img = new Image()
+
+        // 重点在这一步，解析blob数据，然后赋值img标签的src即可，解析的blob数据就是img的临时路径地址
+        Img.src = window.URL.createObjectURL(data[i])
+
+        box.appendChild(Img)
+      }
+    },
+    drawStart(ctx, img, canvas) { // 绘图开始钩子
+      let { width, height } = canvas
+
+      // 使用插件，这是个绘制方形到图片上的插件
+      this.$fillRect(ctx, {
+        left: 0, // 左边定位
+        top: height / 2 - height / 4 / 2, // 顶部位置
+        width: width, // 方形宽度
+        height: height / 4, // 方形高度
+        lineWidth: 2, // 边框线宽
+        fillColor: 'rgba(0, 0, 0, 0.7)', // 方形色值
+        strokeColor: '#00bFFF' // 线色值
+      })
+
+      // 使用插件，这是个绘制圆形到图片上的插件
+      this.$fillCircle (ctx, {
+        x: width / 10, // 圆心x
+        y: height / 2, // 圆心y
+        r: height / 16, // 圆半径
+        sAngle: 0, // 起始角度
+        eAngle: 2 * Math.PI, // 结束角度
+        counterclockwise: false, // 顺时针或逆时针
+        fillColor: '#FFF', // 圆色值
+        strokeColor: '#FFF', // 边线色值
+        strokeWidth: 1 // 边线宽度
+      })
+
+      // 创建渐变
+      var gradient = ctx.createLinearGradient(0, 0, width, 0)
+      gradient.addColorStop("0", "#f00")
+      gradient.addColorStop("0.5", "#f00")
+      gradient.addColorStop("1.0", "#f00")
+
+      // 使用插件，这是个加文字到图片上的插件
+      this.$fillText(ctx, {
+        font: `${width / 10}px microsoft yahei`, // 字体
+        fillStyle: gradient, // 样式
+        txt: '综合示例', // 内容
+        textAlign: 'center', // 文字方向
+        left: width / 2, // 左边定位
+        top: height / 4 // 顶部位置
+      })
+
+      // 使用插件，这是个加文字到图片上的插件
+      this.$fillText(ctx, {
+        font: `microsoft yahei`, // 字体
+        fillStyle: '#FFF', // 样式
+        txt: 'Hello World', // 内容
+        textAlign: 'center', // 文字方向
+        left: width / 2, // 左边定位
+        top: height / 2 + height / 16 // 顶部位置
+      })
+
+    },
+    done(res) {
+      console.log('done') // 成功钩子
+      console.log(res)
+    }
+  })
+
+  document.getElementById('send').onclick = function() {
+    mg.send()
+  }
+</script>
+</html>

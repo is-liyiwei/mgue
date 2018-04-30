@@ -73,10 +73,25 @@ var gradient = ctx.createLinearGradient(0, 0, canvas.width, 0)
     })
 ```
 
-> 示例
+```
+插件的使用一般是对canvas进行操作，所以插件一般用在drawStart方法里面，该方法会暴露出当前的绘图对象和img本身
+ctx, img, canvas，目录下有三个常用方法的插件，用于添加文本，图形，可用于加水印标识等等，也可自己写插件，按照上面
+的方法使用即可，本意上就是对canvas进行操作，只要有足够的绘图功底，Nothing is impossible！！！
+
+drawStart(ctx, img, canvas) { // 绘图开始钩子
+  this.$pluginFn(ctx, {
+
+  })
+}
+```
+
+> 示例，可直接下载此项目，查看demo文件夹下对应的文件
 
 [普通使用，压缩上传]()
 [压缩上传，添加文字]()
+[压缩上传，添加方形]()
+[压缩上传，添加圆形]()
+[综合示例]()
 
 > 后端代码以node为示例，基于express，依赖formidable库
 
@@ -167,3 +182,9 @@ router.post('/web/upload', function(req, res, next) {
 module.exports = router;
 
 ```
+
+> 参考文献
+
++ [要多简单就有多简单的H5拍照加水印](https://segmentfault.com/a/1190000007098531)
++ [手把手教你如何编写一个前端图片压缩、方向纠正、预览、上传插件](https://juejin.im/post/5a9759a16fb9a0635b5360b3)
++ [系统学习前端之FormData详解](https://segmentfault.com/a/1190000006716454)

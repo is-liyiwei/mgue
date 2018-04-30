@@ -4,41 +4,7 @@
 	<meta charset="UTF-8">
 	<title>uploadImg</title>
 	<meta name="viewport" content="initial-scale=1.0, maximum-scale=1, user-scalable=no">
-	<style>
-		#input-box {
-			display: flex;
-			position: relative;
-			height: 3rem;
-		}
-		#upload {
-			position: absolute;
-			width: 100%;
-			height: 100%;
-			opacity: 0;
-		}
-		.btn {
-			width: 100%;
-			height: 100%;
-			border: none;
-			background-color: pink;
-			border-radius: 3px;
-			color: #fff;
-			cursor: pointer;
-			margin: 0;
-			padding: 0;
-		}
-		#send {
-			margin-top: 20px;
-			height: 50px;
-			background-color: lightgreen;
-		}
-
-		img {
-			width: 100%;
-			height: 100%;
-			margin-top: 10px;
-		}
-	</style>
+	<link rel="stylesheet" href="../demo.css">
 </head>
 <body>
 
@@ -52,12 +18,12 @@
 	<div id="box"></div>
 
 </body>
-<script type="text/javascript" src="../index.js"></script>
-<script type="text/javascript" src="../mugeFill.js"></script>
+<script type="text/javascript" src="../../index.js"></script>
+<script type="text/javascript" src="../../mugeFillRect.js"></script>
 <script>
 
   // 注册插件
-  mgue.use(fillTextPlugin, {
+  mgue.use(fillRectPlugin, {
     params: 'order params' // 可以添加额外的参数
   })
 
@@ -89,20 +55,16 @@
       }
     },
     drawStart(ctx, img, canvas) { // 绘图开始钩子
-      // 创建渐变
-      var gradient = ctx.createLinearGradient(0, 0, canvas.width, 0)
-      gradient.addColorStop("0", "white")
-      gradient.addColorStop("0.5", "#00bfff")
-      gradient.addColorStop("1.0", "white")
-
-      // 使用插件，这是个加文字到图片上的插件
-      this.$fillText(ctx, {
-        font: `${img.width / 10}px microsoft yahei`,
-        fillStyle: gradient,
-        txt: '居中填充文字',
-        textAlign: 'center',
-        w: canvas.width / 2,
-        h: canvas.height / 2
+      let { width, height } = canvas
+      // 使用插件，这是个绘制方形到图片上的插件
+      this.$fillRect(ctx, {
+        left: width / 2 - width / 4 / 2, // 左边定位
+        top: height / 2 - height / 4 / 2, // 顶部位置
+        width: width / 4, // 方形宽度
+        height: height / 4, // 方形高度
+        lineWidth: 20, // 边框线宽
+        fillColor: 'rgba(0, 0, 0, 0.7)', // 方形色值
+        strokeColor: '#00bFFF' // 线色值
       })
     },
     done(res) {

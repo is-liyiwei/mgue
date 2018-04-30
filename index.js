@@ -5,9 +5,13 @@
  * https://github.com/is-liyiwei/mgue
  */
 (function (global, factory) {
-  typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory() :
-    typeof define === "function" && define.amd ? define(factory) :
-      (global.mgue = factory())
+  if (typeof exports === "object" && typeof module !== "undefined") {
+    module.exports = factory()
+  } else if (typeof define === "function" && define.amd) {
+    define(factory)
+  } else {
+    (global.mgue = factory())
+  }
 }(this, (function () { "use strict"
 
   const LIFECYCLE_HOOKS = [
@@ -34,22 +38,21 @@
 
   const checkTypeForImage = /\.*(gif|jpg|jpeg|bmp|png)$/i
 
-  // mime其实可以校验格式，但是这里暂时不太了解，先放着，下面写死一个默认的image/jpeg格式
-  const mimes = {
-    "jpg": "image/jpeg",
-    "jpeg": "image/jpeg",
-    "png": "image/png",
-    "gif": "image/gif"
-    // "svg": "image/svg+xml"
-    // "psd": "image/photoshop"
-  }
+  // const mimes = {
+  //   "jpg": "image/jpeg",
+  //   "jpeg": "image/jpeg",
+  //   "png": "image/png",
+  //   "gif": "image/gif"
+  //   "svg": "image/svg+xml"
+  //   "psd": "image/photoshop"
+  // }
 
   const checkType = (obj) => {
     return class2type[toString.call(obj)]
   }
 
   const getMime = (b64) => {
-    return b64.split(',')[0].split(':')[1].split(';')[0]
+    return b64.split(",")[0].split(":")[1].split(";")[0]
   }
 
   /**
@@ -58,22 +61,22 @@
    * @returns {Blob}
    */
   let dataURItoBlob = (dataURI) => {
-    let byteString = atob(dataURI.split(',')[1])
+    let byteString = atob(dataURI.split(",")[1])
     let mimeString = getMime(dataURI)
     let ab = new ArrayBuffer(byteString.length)
     let ia = new Uint8Array(ab)
     for (let i = 0; i < byteString.length; i++) {
-        ia[i] = byteString.charCodeAt(i)
+      ia[i] = byteString.charCodeAt(i)
     }
     return new Blob([ab], {type: mimeString})
   }
 
   let compress = (imgObj, mgue, opts) => {
     let canvas = document.createElement("canvas"),
-        ctx = canvas.getContext("2d"),
-        scale = imgObj.width / imgObj.height,
-        width1 = imgObj.width,
-        height1 = parseInt(width1 / scale)
+      ctx = canvas.getContext("2d"),
+      scale = imgObj.width / imgObj.height,
+      width1 = imgObj.width,
+      height1 = parseInt(width1 / scale)
 
     canvas.width = width1
     canvas.height = height1
@@ -100,7 +103,7 @@
   class mgue {
     static use (plugin, opts) {
       if (plugin.installed) {
-        console.info('plugin installed')
+        console.info("plugin installed") // eslint-disable-line
         return
       }
       plugin.install(this, opts)
@@ -151,7 +154,7 @@
 
           if (!checkTypeForImage.test(file.type)) {
             // 检查是否是图片类型
-            console.warn("warn: Must be the image type")
+            console.warn("warn: Must be the image type") // eslint-disable-line
             return mgue.warn = true
           } else {
             // 设置图片类型
