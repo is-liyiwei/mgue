@@ -16,8 +16,14 @@
 > use module
 
 ```
-npm i mgue
+npm i mgue --save
 import mgue from 'mgue'
+
+// use plugins
+
+import fillTextPlugin from 'mgue/mgueFillText'
+import fillRectPlugin from 'mgue/mgueFillRect'
+import fillCirclePlugin from 'mgue/mgueFillCircle'
 ```
 
 > 插件使用(是不是很像Vue，就是参(chao)考(xi)了Vue的思路！0.0)
@@ -87,11 +93,12 @@ drawStart(ctx, img, canvas) { // 绘图开始钩子
 
 > 示例，可直接下载此项目，查看demo文件夹下对应的文件
 
-+ [普通使用，压缩上传]()
-+ [压缩上传，添加文字]()
-+ [压缩上传，添加方形]()
-+ [压缩上传，添加圆形]()
-+ [综合示例]()
++ [普通使用，压缩上传](https://github.com/is-liyiwei/mgue/tree/master/demo/index1)
++ [压缩上传，添加文字](https://github.com/is-liyiwei/mgue/tree/master/demo/index2)
++ [压缩上传，添加方形](https://github.com/is-liyiwei/mgue/tree/master/demo/index3)
++ [压缩上传，添加圆形](https://github.com/is-liyiwei/mgue/tree/master/demo/index4)
++ [综合示例](https://github.com/is-liyiwei/mgue/tree/master/demo/index5)
++ [vue中使用](https://github.com/is-liyiwei/mgue/tree/master/demo/vue-demo)
 
 > 后端代码以node为示例，基于express，依赖formidable库
 
