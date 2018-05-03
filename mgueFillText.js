@@ -1,6 +1,5 @@
 let fillTextPlugin = {}
 fillTextPlugin.install = function (mgue, options) {
-  console.log(options)
   // 1. 添加实例方法
   mgue.prototype.$fillText = function (ctx, opts) {
     ctx.font = opts.font

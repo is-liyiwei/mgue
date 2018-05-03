@@ -24,6 +24,20 @@ import mgue from 'mgue'
 import fillTextPlugin from 'mgue/mgueFillText'
 import fillRectPlugin from 'mgue/mgueFillRect'
 import fillCirclePlugin from 'mgue/mgueFillCircle'
+
+import rotatePlugin from 'mgue/mgueRotate'
+import scalePlugin from 'mgue/mgueScale'
+import translatePlugin from 'mgue/mgueTranslate'
+
+// 注册插件
+Mgue.use(fillTextPlugin)
+Mgue.use(fillRectPlugin)
+Mgue.use(fillCirclePlugin)
+
+// 旋转，缩放，位移插件，使用方法参考demo目录下的文件，原理差不多
+Mgue.use(rotatePlugin)
+Mgue.use(scalePlugin)
+Mgue.use(translatePlugin)
 ```
 
 > 插件使用(是不是很像Vue，就是参(chao)考(xi)了Vue的思路！0.0)
@@ -84,7 +98,8 @@ var gradient = ctx.createLinearGradient(0, 0, canvas.width, 0)
 // ctx, img, canvas，目录下有三个常用方法的插件，用于添加文本，图形，可用于加水印标识等等，也可自己写插件，按照上面
 // 的方法使用即可，本意上就是对canvas进行操作，只要有足够的绘图功底，Nothing is impossible！！！
 
-drawStart(ctx, img, canvas) { // 绘图开始钩子
+drawStart() { // 绘图开始钩子
+  let { ctx, img, canvas } = this
   this.$pluginFn(ctx, {
 
   })

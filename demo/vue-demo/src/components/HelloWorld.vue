@@ -17,10 +17,19 @@ import fillTextPlugin from 'mgue/mgueFillText'
 import fillRectPlugin from 'mgue/mgueFillRect'
 import fillCirclePlugin from 'mgue/mgueFillCircle'
 
+import rotatePlugin from 'mgue/mgueRotate'
+import scalePlugin from 'mgue/mgueScale'
+import translatePlugin from 'mgue/mgueTranslate'
+
 // 注册插件
 Mgue.use(fillTextPlugin)
 Mgue.use(fillRectPlugin)
 Mgue.use(fillCirclePlugin)
+
+// 旋转，缩放，位移插件，使用方法参考demo目录下的文件，原理差不多
+Mgue.use(rotatePlugin)
+Mgue.use(scalePlugin)
+Mgue.use(translatePlugin)
 
 export default {
   name: 'HelloWorld',
@@ -57,7 +66,7 @@ export default {
           box.appendChild(Img)
         }
       },
-      drawStart (ctx, img, canvas) { // 绘图开始钩子
+      drawStart ({ctx, img, canvas} = this) { // 绘图开始钩子
         let { width, height } = canvas
 
         // 使用插件，这是个绘制方形到图片上的插件

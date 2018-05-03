@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>uploadImg</title>
+	<meta name="viewport" content="initial-scale=1.0, maximum-scale=1, user-scalable=no">
+	<link rel="stylesheet" href="../demo.css">
+  <style>
+    #box, #boxCircle {
+      display: inline-block;
+    }
+    #boxCircle img {
+      border-radius: 50%;
+    }
+  </style>
+</head>
+<body>
+
+	<div id="input-box">
+		<input type="file" id="upload" capture="camera" />
+		<button class="btn">chooseImg</button>
+	</div>
+
+	<button id="send" class="btn">send</button>
+  <br><br>
+  <input type="range" id="rangeX" value="0" min="-1000" max="1000">
+  <input type="range" id="rangeY" value="0" min="-1000" max="1000">
+
+  <input type="range" id="rangeRotate" value="0" max="1000">
+
+  <input type="range" id="rangeScale" value="10" min="1" max="20">
+  <br><br>
+  <div id="box"></div>
+  <div id="boxCircle"></div>
+
+</body>
+<script type="text/javascript" src="../../index.js"></script>
+<script type="text/javascript" src="../../mgueTranslate.js"></script>
+<script type="text/javascript" src="../../mgueRotate.js"></script>
+<script type="text/javascript" src="../../mgueScale.js"></script>
+<script>
+
+  // 注册插件
+  mgue.use(translatePlugin)
+  mgue.use(rotatePlugin)
+  mgue.use(scalePlugin)
+
+  let translateX = 0 // 全局变量，用来控制图片的位移
+  let translateY = 0 // 全局变量，用来控制图片的位移
+  let deg = null // 全局变量，用来控制图片的旋转角度
+  let scale = 1 // 全局变量，用来控制图片的缩放系数
+
+  let mg = new mgue({
+    el: '#upload', // 仅支持id选择器
+    data: {
+      url: 'http://192.168.0.106:3000/web/upload', // 上传的地址，为post方法
+      size: 2048, // 超过2048kb则会压缩，默认值是2048，可手动定义
+      coefficient: 0.8, // 压缩系数，默认是0.8，可选范围是0-1的数字类型的值，可手动定义
+      params: { // 额外参数
+        name: 'liyiwei123'
+      },
+      headers: { // 请求头部参数
+        heData: 'heData123'
+      }
+    },
+    compressImg(data, $event) {
+      console.log('compressImg') // 选择图片的钩子
+
+      let box = document.getElementById('box')
+      let boxCircle = document.getElementById('boxCircle')
+      box.innerHTML = ''
+      boxCircle.innerHTML = ''
+      for (let i = 0; i < data.length; i++) {
+        let Img = new Image()
+        let ImgCircle = new Image()
+
+        // 重点在这一步，解析blob数据，然后赋值img标签的src即可，解析的blob数据就是img的临时路径地址
+        Img.src = window.URL.createObjectURL(data[i])
+        ImgCircle.src = window.URL.createObjectURL(data[i])
+
+        box.appendChild(Img)
+        boxCircle.appendChild(ImgCircle)
+      }
+    },
+    drawStart() { // 绘图开始钩子
+      let { ctx } = this
+      // 使用插件，这是个位移图片的插件
+      this.$translate(ctx, {
+        translateX: translateX,
+        translateY: translateY
+      })
+
+      // 使用插件，这是个旋转图片的插件
+      this.$rotate(ctx, {
+        degree: deg
+      })
+
+      // 使用插件，这是个缩放图片的插件
+      this.$scale(ctx, {
+        scale: scale
+      })
+    },
+    done(res) {
+      console.log('done') // 成功钩子
+      console.log(res)
+    }
+  })
+
+  document.getElementById('send').onclick = function() {
+    mg.send()
+  }
+
+  document.getElementById('rangeRotate').onchange = document.getElementById('rangeRotate').oninput = function (e) {
+    deg = e.target.valueAsNumber
+    mg.update()
+  }
+
+  document.getElementById('rangeX').onchange = document.getElementById('rangeX').oninput = function (e) {
+    translateX = e.target.valueAsNumber / 10
+    mg.update()
+  }
+
+  document.getElementById('rangeY').onchange = document.getElementById('rangeY').oninput = function (e) {
+    translateY = e.target.valueAsNumber / 10
+    mg.update()
+  }
+
+  document.getElementById('rangeScale').onchange = document.getElementById('rangeScale').oninput = function (e) {
+    scale = e.target.valueAsNumber / 10
+    mg.update()
+  }
+
+</script>
+</html>

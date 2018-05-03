@@ -5,32 +5,43 @@
 	<title>uploadImg</title>
 	<meta name="viewport" content="initial-scale=1.0, maximum-scale=1, user-scalable=no">
 	<link rel="stylesheet" href="../demo.css">
+  <style>
+    #box, #boxCircle {
+      display: inline-block;
+    }
+    #boxCircle img {
+      border-radius: 50%;
+    }
+  </style>
 </head>
 <body>
 
 	<div id="input-box">
-		<input type="file" id="upload" capture="camera" multiple="false" />
+		<input type="file" id="upload" capture="camera" />
 		<button class="btn">chooseImg</button>
 	</div>
 
 	<button id="send" class="btn">send</button>
 
-	<div id="box"></div>
+  <div id="box"></div>
+  <div id="boxCircle"></div>
+
+  <input type="range" id="range" value="0" max="1000">
 
 </body>
 <script type="text/javascript" src="../../index.js"></script>
-<script type="text/javascript" src="../../mgueFillRect.js"></script>
+<script type="text/javascript" src="../../mgueRotate.js"></script>
 <script>
 
   // 注册插件
-  mgue.use(fillRectPlugin, {
-    params: 'order params' // 可以添加额外的参数
-  })
+  mgue.use(rotatePlugin)
+
+  let deg = null // 全局变量，用来控制图片的旋转角度
 
   let mg = new mgue({
     el: '#upload', // 仅支持id选择器
     data: {
-      url: 'http://192.168.1.103:3000/web/upload', // 上传的地址，为post方法
+      url: 'http://192.168.0.106:3000/web/upload', // 上传的地址，为post方法
       size: 2048, // 超过2048kb则会压缩，默认值是2048，可手动定义
       coefficient: 0.8, // 压缩系数，默认是0.8，可选范围是0-1的数字类型的值，可手动定义
       params: { // 额外参数
@@ -40,31 +51,30 @@
         heData: 'heData123'
       }
     },
-    chooseImg(data, $event) {
-      console.log('chooseImg') // 选择图片的钩子
+    compressImg(data, $event) {
+      console.log('compressImg') // 选择图片的钩子
 
       let box = document.getElementById('box')
+      let boxCircle = document.getElementById('boxCircle')
       box.innerHTML = ''
-      for(let i = 0; i < data.length; i++) {
+      boxCircle.innerHTML = ''
+      for (let i = 0; i < data.length; i++) {
         let Img = new Image()
+        let ImgCircle = new Image()
 
         // 重点在这一步，解析blob数据，然后赋值img标签的src即可，解析的blob数据就是img的临时路径地址
         Img.src = window.URL.createObjectURL(data[i])
+        ImgCircle.src = window.URL.createObjectURL(data[i])
 
         box.appendChild(Img)
+        boxCircle.appendChild(ImgCircle)
       }
     },
-    drawStart(ctx, img, canvas) { // 绘图开始钩子
-      let { width, height } = canvas
-      // 使用插件，这是个绘制方形到图片上的插件
-      this.$fillRect(ctx, {
-        left: width / 2 - width / 4 / 2, // 左边定位
-        top: height / 2 - height / 4 / 2, // 顶部位置
-        width: width / 4, // 方形宽度
-        height: height / 4, // 方形高度
-        lineWidth: 20, // 边框线宽
-        fillColor: 'rgba(0, 0, 0, 0.7)', // 方形色值
-        strokeColor: '#00bFFF' // 线色值
+    drawStart() { // 绘图开始钩子
+      let { ctx } = this
+      // 使用插件，这是个旋转图片的插件
+      this.$rotate(ctx, {
+        degree: deg
       })
     },
     done(res) {
@@ -76,5 +86,11 @@
   document.getElementById('send').onclick = function() {
     mg.send()
   }
+
+  document.getElementById('range').onchange = document.getElementById('range').oninput = function (e) {
+    deg = e.target.valueAsNumber
+    mg.update()
+  }
+
 </script>
 </html>

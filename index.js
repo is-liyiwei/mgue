@@ -1,5 +1,5 @@
 /*!
- * mgue.js v0.1.1
+ * mgue.js v0.2.0
  * (c) 2018-2018 is-liyiwei
  * Released under the MIT License.
  * https://github.com/is-liyiwei/mgue
@@ -16,7 +16,7 @@
 
   const LIFECYCLE_HOOKS = [
     "create",
-    "chooseImg",
+    "compressImg",
     "drawStart",
     "drawEnd",
     "uploadStart",
@@ -71,23 +71,27 @@
     return new Blob([ab], {type: mimeString})
   }
 
-  let compress = (imgObj, mgue, opts) => {
+  let compressImgForCanvas = (img, mgue, opts) => {
     let canvas = document.createElement("canvas"),
-      ctx = canvas.getContext("2d"),
-      scale = imgObj.width / imgObj.height,
-      width1 = imgObj.width,
-      height1 = parseInt(width1 / scale)
+        ctx = canvas.getContext("2d"),
+        scale = img.width / img.height,
+        width1 = img.width,
+        height1 = parseInt(width1 / scale)
 
     canvas.width = width1
     canvas.height = height1
 
-    ctx.drawImage(imgObj, 0, 0, width1, height1)
+    ctx.drawImage(img, 0, 0, width1, height1)
 
-    mgue["drawStart"] && mgue["drawStart"].call(mgue, ctx, imgObj, canvas)
+    mgue.ctx = ctx
+    mgue.img = img
+    mgue.canvas = canvas
+
+    mgue["drawStart"] && mgue["drawStart"].call(mgue)
     // 将原来图片的质量压缩到原先的coefficient倍。data url的形式
     let data = canvas.toDataURL(opts.fileMime, opts.coefficient)
 
-    mgue["drawEnd"] && mgue["drawEnd"].call(mgue, ctx, imgObj, canvas)
+    mgue["drawEnd"] && mgue["drawEnd"].call(mgue)
 
     return data
   }
@@ -126,11 +130,11 @@
       mgue.url = mgue._options.data.url
       mgue.$ref = document.getElementById(mgue._options.el.slice(1))
       mgue.blobList = []
-      mgue.initHook()
-      mgue.bindHandleDefault(mgue)
+      mgue._initHook()
+      mgue._bindHandleDefault(mgue)
       mgue["create"] && mgue["create"].call(null)
     }
-    initHook () {
+    _initHook () {
       let o = this._options
       for (let hook of LIFECYCLE_HOOKS) {
         if (checkType(o[hook]) === "function") {
@@ -140,90 +144,94 @@
         }
       }
     }
-    bindHandleDefault (mgue) {
+    _bindHandleDefault (mgue) {
       this.$ref.onchange = function (e) {
         mgue.fileList = this.files
-        mgue.warn = false
-        let compressSize = mgue.$data.size
-        let coefficient = mgue.$data.coefficient
-        let blobList = mgue.blobList = []
+        mgue.update()
+      }
+    }
+    update () {
+      let mgue = this
+      mgue.warn = false
+      let compressSize = mgue.$data.size
+      let coefficient = mgue.$data.coefficient
+      let blobList = mgue.blobList = []
 
-        let files = Array.prototype.slice.call(mgue.fileList)
+      let files = Array.prototype.slice.call(mgue.fileList)
 
-        files.forEach(function (file) {
+      files.forEach(function (file) {
 
-          if (!checkTypeForImage.test(file.type)) {
-            // 检查是否是图片类型
-            console.warn("warn: Must be the image type") // eslint-disable-line
-            return mgue.warn = true
-          } else {
-            // 设置图片类型
-            file.fileMime = file.type.match(checkTypeForImage)["input"]
-          }
+        if (!checkTypeForImage.test(file.type)) {
+          // 检查是否是图片类型
+          console.warn("warn: Must be the image type") // eslint-disable-line
+          return mgue.warn = true
+        } else {
+          // 设置图片类型
+          file.fileMime = file.type.match(checkTypeForImage)["input"]
+        }
 
-          // 获取图片压缩前大小，打印图片压缩前大小
-          // let size = ~~(file.size / 1024) + "KB"
-          let size = ~~(file.size / 1024)
+        // 获取图片压缩前大小，打印图片压缩前大小
+        // let size = ~~(file.size / 1024) + "KB"
+        let size = ~~(file.size / 1024)
 
-          let reader = new FileReader()
+        let reader = new FileReader()
 
-          reader.readAsDataURL(file)
-          // 设置一个flag，gif暂时无法绘图
-          file.is_gif_flag = _canCompress(file.fileMime)
+        reader.readAsDataURL(file)
+        // 设置一个flag，gif暂时无法绘图
+        file.is_gif_flag = _canCompress(file.fileMime)
 
-          reader.onload = (evt) => {
-            let img = new Image()
-            img.src = evt.srcElement.result
-            img.onload = () => {
-              // 当图片大小不超过这个的时候或者为gif图，跳过canvas，直接上传
-              if (size < compressSize || file.is_gif_flag) {
-                // 小于这个尺寸，但是有绘图需求进入canvas，但不能是gif图
-                if (!file.is_gif_flag && mgue["drawStart"] != undefined || mgue["drawEnd"] != undefined) {
+        reader.onload = (evt) => {
+          let img = new Image()
+          img.src = evt.srcElement.result
+          img.onload = () => {
+            // 当图片大小不超过这个的时候或者为gif图，跳过canvas，直接上传
+            if (size < compressSize || file.is_gif_flag) {
+              // 小于这个尺寸，但是有绘图需求进入canvas，但不能是gif图
+              if (!file.is_gif_flag && mgue["drawStart"] != undefined || mgue["drawEnd"] != undefined) {
 
-                  let imgBase64 = compress(img, mgue, {
-                    fileMime: file.fileMime,
-                    coefficient,
-                    size,
-                    compressSize
-                  })
-
-                  blobList.push(dataURItoBlob(imgBase64))
-
-                  if(blobList.length === files.length) {
-                    mgue["chooseImg"] && mgue["chooseImg"].call(this, mgue.blobList, e)
-                  }
-
-                } else {
-                  blobList.push(dataURItoBlob(evt.srcElement.result))
-                  //将压缩后的二进制图片数据对象(blob)组成的list通过钩子函数返回出去
-                  if(blobList.length === files.length) {
-                    mgue["chooseImg"] && mgue["chooseImg"].call(this, mgue.blobList, e)
-                  }
-                }
-
-              } else {
-                let imgBase64 = compress(img, mgue, {
+                let imgBase64 = compressImgForCanvas(img, mgue, {
                   fileMime: file.fileMime,
                   coefficient,
                   size,
                   compressSize
                 })
-                // 打印压缩前后的大小，以及压缩比率
-                // console.log('压缩前：' + evt.srcElement.result.length)
-                // console.log('压缩后：' + imgBase64.length)
-                // console.log('压缩率：' + ~~(100 * (evt.srcElement.result.length - imgBase64.length) / evt.srcElement.result.length) + "%")
-                // console.log('base64数据', imgBase64)
+
                 blobList.push(dataURItoBlob(imgBase64))
 
-                // 将压缩后的二进制图片数据对象(blob)组成的list通过钩子函数返回出去
                 if(blobList.length === files.length) {
-                  mgue["chooseImg"] && mgue["chooseImg"].call(this, mgue.blobList, e)
+                  mgue["compressImg"] && mgue["compressImg"].call(this, mgue.blobList)
                 }
+
+              } else {
+                blobList.push(dataURItoBlob(evt.srcElement.result))
+                //将压缩后的二进制图片数据对象(blob)组成的list通过钩子函数返回出去
+                if(blobList.length === files.length) {
+                  mgue["compressImg"] && mgue["compressImg"].call(this, mgue.blobList)
+                }
+              }
+
+            } else {
+              let imgBase64 = compressImgForCanvas(img, mgue, {
+                fileMime: file.fileMime,
+                coefficient,
+                size,
+                compressSize
+              })
+              // 打印压缩前后的大小，以及压缩比率
+              // console.log('压缩前：' + evt.srcElement.result.length)
+              // console.log('压缩后：' + imgBase64.length)
+              // console.log('压缩率：' + ~~(100 * (evt.srcElement.result.length - imgBase64.length) / evt.srcElement.result.length) + "%")
+              // console.log('base64数据', imgBase64)
+              blobList.push(dataURItoBlob(imgBase64))
+
+              // 将压缩后的二进制图片数据对象(blob)组成的list通过钩子函数返回出去
+              if(blobList.length === files.length) {
+                mgue["compressImg"] && mgue["compressImg"].call(this, mgue.blobList)
               }
             }
           }
-        })
-      }
+        }
+      })
     }
     // markHook (hook) {
     //   this[hook].apply(this)
