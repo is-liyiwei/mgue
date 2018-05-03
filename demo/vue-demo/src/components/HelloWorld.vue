@@ -52,8 +52,8 @@ export default {
           heData: 'heData123'
         }
       },
-      chooseImg (data, $event) {
-        console.log('chooseImg') // 选择图片的钩子
+      compressImg (data, $event) {
+        console.log('compressImg') // 选择图片的钩子
 
         let box = document.getElementById('box')
         box.innerHTML = ''
@@ -125,6 +125,8 @@ export default {
     document.getElementById('send').onclick = function () {
       mg.send()
     }
+
+    console.log(mg)
   }
 }
 </script>
