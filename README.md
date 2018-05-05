@@ -1,10 +1,12 @@
 ##### 一个仿Vue风格的图片上传工具，但不是Vue的插件，只是使用方式类似于Vue风格，原生无依赖，数据与ui分离，使用插件方式拓展方法
 
-> 存在的bug
+> 存在的bug与问题
 
 + gif图无法进行任何压缩、绘图操作，直接上传
 
 + 没有绘图操作时不要写drawStart和drawEnd方法，会导致图片进入canvas操作，从而使图片变大。(插件上设计的问题，暂未找到解决办法)
+
++ 插件设计上存在缺陷，虽然有插件和示例，但无法提供开箱即用的api，使用上比较繁琐
 
 
 > use browser
@@ -113,6 +115,10 @@ drawStart() { // 绘图开始钩子
 + [压缩上传，添加方形](https://github.com/is-liyiwei/mgue/tree/master/demo/index3)
 + [压缩上传，添加圆形](https://github.com/is-liyiwei/mgue/tree/master/demo/index4)
 + [综合示例](https://github.com/is-liyiwei/mgue/tree/master/demo/index5)
++ [图片旋转](https://github.com/is-liyiwei/mgue/tree/master/demo/index6)
++ [图片缩放](https://github.com/is-liyiwei/mgue/tree/master/demo/index7)
++ [图片位移](https://github.com/is-liyiwei/mgue/tree/master/demo/index8)
++ [综合示例](https://github.com/is-liyiwei/mgue/tree/master/demo/index9)
 + [vue中使用](https://github.com/is-liyiwei/mgue/tree/master/demo/vue-demo)
 
 > 后端代码以node为示例，基于express，依赖formidable库

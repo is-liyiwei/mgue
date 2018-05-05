@@ -1,3 +1,3 @@
-### 综合示例
+### 图片缩放
 
-![image](https://github.com/is-liyiwei/mgue/blob/master/gif/5.gif)
+![image](https://github.com/is-liyiwei/gif/blob/master/mgue/7.gif)

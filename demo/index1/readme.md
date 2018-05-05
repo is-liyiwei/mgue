@@ -1,3 +1,3 @@
 ### 普通使用，压缩上传
 
-![image](https://github.com/is-liyiwei/mgue/blob/master/gif/1.gif)
+![image](https://github.com/is-liyiwei/gif/blob/master/mgue/1.gif)
